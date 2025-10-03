@@ -1,0 +1,58 @@
+
+Code Report: interactive_math_tutor.py
+
+Overview
+This Python script implements an interactive math tutor chatbot that solves math problems step-by-step, providing clear explanations. It supports two large language models (Groq and OpenAI) with easy runtime switching and incorporates tracing utilities for detailed observability.
+
+Key Features
+- Dual LLM Backends: Groq and OpenAI chat models initialized with API keys.
+- Prompt Engineering: Uses LangChain PromptTemplate for dynamic stepwise math problem solving.
+- Tracing: Decorators and context managers to log function calls, execution time, and errors.
+- Interactive Loop: Continuous conversation allowing problem input, model switching, and exit command.
+
+Modules and Functions
+
+Environment and Model Initialization
+- Loads environment variables and sets tracing configurations.
+- Initializes Groq and OpenAI models explicitly with API keys.
+
+Prompt Template
+- math_prompt_template defines a problem statement with stepwise solution instructions.
+
+Tracing Utilities
+- trace decorator logs function entry, arguments, execution duration, and exceptions.
+- trace_block context manager traces block-level execution and error handling.
+
+Math Problem Solving Pipeline
+- generate_prompt(): Creates prompt for the model using user question.
+- solve_math_problem(): Generates prompt and invokes the LLM model with tracing enabled.
+
+Interactive Chat Loop (main)
+- Continuous command loop accepts math problems from user.
+- Supports commands 'switch' to toggle models and 'exit' to quit.
+- Displays model-generated stepwise solution to the user.
+
+Skills Applied
+- Prompt engineering for clear instructions to LLM.
+- Multi-model API integration with flexibility.
+- Traceability and observability for debugging and performance monitoring.
+- Interactive system design mimicking real educational chatbots.
+- Modular, maintainable code using decorators and context managers.
+
+Modifications from Lessons
+- Shift from static queries to interactive multi-turn problem solving.
+- Enhanced tracing capabilities over basic tracing concepts.
+- Model switching for operational flexibility.
+
+Usefulness in Real World
+- Provides explainable AI tutoring for users learning math.
+- Useful for digital education platforms, homework help, and tutoring bots.
+- Trace logs assist in auditability, improving trust in AI.
+- Multi-model approach facilitates optimizing cost and performance in production.
+
+Usage Instructions
+- Install dependencies: langchain, python-dotenv.
+- Supply valid API keys for Groq and OpenAI.
+- Run script in Python environment.
+- Interact via terminal prompts.
+
