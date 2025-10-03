@@ -1,0 +1,30 @@
+Project Report -> Skills, Learnings, Modifications, Improvements, and Usefulness
+
+1. Skills Used from Lessons
+- Applied concepts learned in the lessons such as coding fundamentals, file handling, data structures, and algorithm design.
+- Followed best practices for code documentation and commenting.
+- Used debugging and testing techniques covered in the lessons.
+
+2. Skills Learned While Creating This Project
+- Improved problem-solving ability by applying theory to a real-world coding task.
+- Learned how to integrate multiple concepts together to create a complete working program.
+- Enhanced understanding of code efficiency and readability.
+- Gained experience in handling errors and unexpected scenarios in code.
+
+3. Modifications Performed (Beyond Lesson Instructions)
+- Added additional features for better usability and flexibility.
+- Optimized certain parts of the code for faster execution.
+- Improved input validation and error handling to make the program more robust.
+- Customized the code structure to make it cleaner and easier to maintain.
+
+4. Possible Improvements in the Future
+- Enhance the user interface to make it more user-friendly (CLI/GUI improvements).
+- Add support for larger and more complex datasets.
+- Implement additional features such as reporting, visualization, or automation.
+- Improve performance through advanced optimization techniques or use of external libraries.
+
+5. Usefulness in Today's World
+- Demonstrates practical application of programming skills in solving real-world problems.
+- Helps in building a foundation for more advanced projects in academic or professional environments.
+- Can be adapted for real-world scenarios like data analysis, automation tasks, or software utilities.
+- Shows the importance of continuous learning and improvement in the field of technology.
