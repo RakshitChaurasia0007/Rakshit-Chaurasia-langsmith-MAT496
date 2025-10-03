@@ -1,0 +1,145 @@
+Module 2 code changes 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+import time
+import functools
+from contextlib import contextmanager
+from langchain.chat_models import init_chat_model
+from langchain.schema import HumanMessage, SystemMessage
+from langchain.prompts import PromptTemplate
+from langchain_community.document_loaders import TextLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+# Enable tracing for observability
+os.environ["LANGSMITHTRACING"] = "true"
+os.environ["LANGSMITHPROJECT"] = "faq-chatbot-project"
+
+# Initialize models with explicit API keys
+model_groq = init_chat_model(
+    "openai/gpt-oss-20b",
+    model_provider="groq",
+    api_key="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"
+)
+
+model_openai = init_chat_model(
+    "openai/gpt-4o",
+    model_provider="openai",
+    api_key=os.getenv("OPENAI_API_KEY")
+)
+
+# Tracing decorators for debugging and performance monitoring
+def trace(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        print(f"[TRACE] Starting {func.__name__}")
+        start = time.time()
+        try:
+            result = func(*args, **kwargs)
+            duration = time.time() - start
+            print(f"[TRACE] Finished {func.__name__} in {duration:.3f}s")
+            return result
+        except Exception as e:
+            print(f"[TRACE] Exception in {func.__name__}: {e}")
+            raise
+    return wrapper
+
+@contextmanager
+def trace_block(name):
+    print(f"[TRACE] Entering: {name}")
+    start = time.time()
+    try:
+        yield
+        duration = time.time() - start
+        print(f"[TRACE] Exiting: {name} (Elapsed: {duration:.3f}s)")
+    except Exception as e:
+        print(f"[TRACE] Exception in block {name}: {e}")
+        raise
+
+@trace
+def load_and_prepare_docs(file_path):
+    loader = TextLoader(file_path)
+    docs = loader.load()
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, add_start_index=True)
+    splits = splitter.split_documents(docs)
+    print(f"[INFO] Loaded and split into {len(splits)} chunks")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    vector_store = InMemoryVectorStore(embeddings)
+    vector_store.add_documents(splits)
+    return vector_store
+
+faq_prompt_template = PromptTemplate(
+    input_variables=["context", "question"],
+    template="""
+You are a helpful FAQ assistant. Use the information below to answer the question concisely in a few sentences.
+Context:
+{context}
+Question: {question}
+Answer:
+"""
+)
+
+@trace
+def retrieve_context_and_answer(vector_store, model, question):
+    with trace_block("Semantic Search"):
+        results = vector_store.similarity_search_with_score(question, k=5)
+        combined_context = "\n\n".join([doc.page_content for doc, score in results])
+    prompt = faq_prompt_template.format(context=combined_context, question=question)
+    messages = [SystemMessage(content="You are an expert FAQ bot."), HumanMessage(content=prompt)]
+    with trace_block("Model Inference"):
+        response = model.invoke(messages)
+    return response.content
+
+def admin_menu():
+    print("Admin Menu")
+    print("1. Add FAQ")
+    print("2. Exit Admin")
+    choice = input("Select option: ")
+    return choice.strip()
+
+def run_admin_interface(vector_store, filepath):
+    print("Admin Interface. You can add a new FAQ.")
+    while True:
+        choice = admin_menu()
+        if choice == '1':
+            new_faq = input("Enter new FAQ entry (question and answer):\n")
+            with open(filepath, "a", encoding="utf-8") as f:
+                f.write("\n" + new_faq + "\n")
+            vector_store = load_and_prepare_docs(filepath)
+            print("[INFO] FAQ added and vector store updated.")
+        elif choice == '2':
+            print("Exiting Admin Interface.")
+            break
+        else:
+            print("Invalid option.")
+
+def main():
+    FILE_PATH = "faq_data.txt"
+    if not os.path.exists(FILE_PATH):
+        with open(FILE_PATH, "w", encoding="utf-8") as f:
+            f.write("FAQ Dataset\nInitial Entry: What is LangSmith? LangSmith is a tool for AI model tracing and evaluation.\n")
+
+    vector_store = load_and_prepare_docs(FILE_PATH)
+    current_model = model_groq
+
+    print("Welcome to the FAQ Chatbot!")
+    print("Type 'exit' to quit, 'switch' to toggle model, 'admin' for administration mode.\n")
+
+    while True:
+        user_input = input("Ask a question: ").strip()
+        if user_input.lower() == "exit":
+            print("Goodbye!")
+            break
+        elif user_input.lower() == "switch":
+            current_model = model_openai if current_model == model_groq else model_groq
+            print(f"Switched to {'OpenAI GPT-4o' if current_model == model_openai else 'Groq GPT-oss-20b'} model.")
+        elif user_input.lower() == "admin":
+            run_admin_interface(vector_store, FILE_PATH)
+        else:
+            answer = retrieve_context_and_answer(vector_store, current_model, user_input)
+            print("Answer:\n", answer)
+
+if __name__ == "__main__":
+    main()
